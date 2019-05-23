@@ -92,6 +92,14 @@ List<GalleryDemo> _buildGalleryDemos() {
   final List<GalleryDemo> galleryDemos = <GalleryDemo>[
     // Demos
     GalleryDemo(
+      title: 'Crane',
+      subtitle: 'Sample travel app',
+      icon: GalleryIcons.custom_typography,
+      category: _kDemos,
+      routeName: CraneDemo.routeName,
+      buildRoute: (BuildContext context) => CraneDemo(),
+    ),
+    GalleryDemo(
       title: 'Shrine',
       subtitle: 'Basic shopping app',
       icon: GalleryIcons.shrine,

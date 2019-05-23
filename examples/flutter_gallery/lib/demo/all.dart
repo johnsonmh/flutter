@@ -6,6 +6,7 @@ export 'animation_demo.dart';
 export 'calculator_demo.dart';
 export 'colors_demo.dart';
 export 'contacts_demo.dart';
+export 'crane/crane.dart';
 export 'cupertino/cupertino.dart';
 export 'fortnightly/fortnightly.dart';
 export 'images_demo.dart';
