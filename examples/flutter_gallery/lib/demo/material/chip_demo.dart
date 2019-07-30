@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../gallery/demo.dart';
 
@@ -135,34 +134,6 @@ class _ChipDemoState extends State<ChipDemo> {
     _reset();
   }
 
-  bool _handleKeyPress(FocusNode node, RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) {
-      return false;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.tab) {
-      event.isShiftPressed ? node.previousFocus() : node.nextFocus();
-      return true;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      node.focusInDirection(TraversalDirection.left);
-      return true;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      node.focusInDirection(TraversalDirection.right);
-      return true;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      node.focusInDirection(TraversalDirection.up);
-      return true;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      node.focusInDirection(TraversalDirection.down);
-      return true;
-    }
-
-    return false;
-  }
-
   final Set<String> _materials = <String>{};
   String _selectedMaterial = '';
   String _selectedAction = '';
@@ -259,21 +230,16 @@ class _ChipDemoState extends State<ChipDemo> {
     }).toList();
 
     final List<Widget> choiceChips = _materials.map<Widget>((String name) {
-      return Focus(
-        focusNode: FocusNode().attach(context),
-        autofocus: true,
-
-        child: ChoiceChip(
-          key: ValueKey<String>(name),
-          backgroundColor: _nameToColor(name),
-          label: Text(_capitalize(name)),
-          selected: _selectedMaterial == name,
-          onSelected: (bool value) {
-            setState(() {
-              _selectedMaterial = value ? name : '';
-            });
-          },
-        ),
+      return ChoiceChip(
+        key: ValueKey<String>(name),
+        backgroundColor: _nameToColor(name),
+        label: Text(_capitalize(name)),
+        selected: _selectedMaterial == name,
+        onSelected: (bool value) {
+          setState(() {
+            _selectedMaterial = value ? name : '';
+          });
+        },
       );
     }).toList();
 
@@ -281,24 +247,6 @@ class _ChipDemoState extends State<ChipDemo> {
       return FilterChip(
         key: ValueKey<String>(name),
         label: Text(_capitalize(name)),
-        labelStyle: TextStyle(color: MaterialStateColor.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
-            return Colors.green;
-          }
-          if (states.contains(MaterialState.pressed)) {
-            return Colors.blue;
-          }
-          if (states.contains(MaterialState.hovered)) {
-            return Colors.red;
-          }
-          if (states.contains(MaterialState.focused)) {
-            return Colors.pink;
-          }
-          if (states.contains(MaterialState.selected)) {
-            return Colors.brown;
-          }
-          return Colors.amberAccent;
-        })),
         selected: _tools.contains(name) && _selectedTools.contains(name),
         onSelected: !_tools.contains(name)
             ? null
@@ -376,7 +324,7 @@ class _ChipDemoState extends State<ChipDemo> {
                 borderRadius: BorderRadius.circular(10.0),
               ))
             : theme.chipTheme,
-        child: FocusScope(onKey: _handleKeyPress, autofocus: true, child: Scrollbar(child: ListView(children: tiles))),
+        child: Scrollbar(child: ListView(children: tiles)),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => setState(_reset),
