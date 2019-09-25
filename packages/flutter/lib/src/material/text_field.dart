@@ -17,6 +17,7 @@ import 'ink_well.dart' show InteractiveInkFeature;
 import 'input_decorator.dart';
 import 'material.dart';
 import 'material_localizations.dart';
+import 'material_state.dart';
 import 'selectable_text.dart' show iOSHorizontalOffset;
 import 'text_selection.dart';
 import 'theme.dart';
@@ -728,9 +729,6 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
   TextEditingController get _effectiveController => widget.controller ?? _controller;
 
   FocusNode _focusNode;
-  FocusNode get _effectiveFocusNode => widget.focusNode ?? (_focusNode ??= FocusNode());
-
-  bool _isHovering = false;
 
   bool get needsCounter => widget.maxLength != null
     && widget.decoration != null
@@ -739,6 +737,8 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
   bool _showSelectionHandles = false;
 
   _TextFieldSelectionGestureDetectorBuilder _selectionGestureDetectorBuilder;
+
+  final Set<MaterialState> _states = <MaterialState>{};
 
   // API for TextSelectionGestureDetectorBuilderDelegate.
   @override
@@ -775,7 +775,7 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
     if (effectiveDecoration.counter == null
         && effectiveDecoration.counterText == null
         && widget.buildCounter != null) {
-      final bool isFocused = _effectiveFocusNode.hasFocus;
+      final bool isFocused = _focusNode.hasFocus;
       counter = Semantics(
         container: true,
         liveRegion: isFocused,
@@ -820,6 +820,15 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
     );
   }
 
+  void _updateFocus() {
+    final bool isFocused = _focusNode.hasFocus;
+    if (isFocused != _states.contains(MaterialState.focused)) {
+      setState(() {
+        _updateState(MaterialState.focused, isFocused);
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -827,7 +836,10 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
     if (widget.controller == null) {
       _controller = TextEditingController();
     }
-    _effectiveFocusNode.canRequestFocus = _isEnabled;
+    _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.canRequestFocus = _isEnabled;
+    _updateFocus();
+    _focusNode.addListener(_updateFocus);
   }
 
   @override
@@ -837,8 +849,13 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
       _controller = TextEditingController.fromValue(oldWidget.controller.value);
     else if (widget.controller != null && oldWidget.controller == null)
       _controller = null;
-    _effectiveFocusNode.canRequestFocus = _isEnabled;
-    if (_effectiveFocusNode.hasFocus && widget.readOnly != oldWidget.readOnly) {
+    if (oldWidget.focusNode != widget.focusNode) {
+      _focusNode?.removeListener(_updateFocus);
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_updateFocus);
+    }
+    _focusNode.canRequestFocus = _isEnabled;
+    if (_focusNode.hasFocus && widget.readOnly != oldWidget.readOnly) {
       if(_effectiveController.selection.isCollapsed) {
         _showSelectionHandles = !widget.readOnly;
       }
@@ -847,6 +864,7 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
 
   @override
   void dispose() {
+    _focusNode?.removeListener(_updateFocus);
     _focusNode?.dispose();
     super.dispose();
   }
@@ -940,7 +958,7 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
   }
 
   void _startSplash(Offset globalPosition) {
-    if (_effectiveFocusNode.hasFocus)
+    if (_focusNode.hasFocus)
       return;
     final InteractiveInkFeature splash = _createInkFeature(globalPosition);
     _splashes ??= HashSet<InteractiveInkFeature>();
@@ -977,10 +995,15 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
   void _handleMouseEnter(PointerEnterEvent event) => _handleHover(true);
   void _handleMouseExit(PointerExitEvent event) => _handleHover(false);
 
+
+  void _updateState(MaterialState state, bool value) {
+    value ? _states.add(state) : _states.remove(state);
+  }
+
   void _handleHover(bool hovering) {
-    if (hovering != _isHovering) {
+    if (_states.contains(MaterialState.hovered) != hovering) {
       setState(() {
-        return _isHovering = hovering;
+         _updateState(MaterialState.hovered, hovering);
       });
     }
   }
@@ -1002,7 +1025,6 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
     final TextStyle style = themeData.textTheme.subhead.merge(widget.style);
     final Brightness keyboardAppearance = widget.keyboardAppearance ?? themeData.primaryColorBrightness;
     final TextEditingController controller = _effectiveController;
-    final FocusNode focusNode = _effectiveFocusNode;
     final List<TextInputFormatter> formatters = widget.inputFormatters ?? <TextInputFormatter>[];
     if (widget.maxLength != null && widget.maxLengthEnforced)
       formatters.add(LengthLimitingTextInputFormatter(widget.maxLength));
@@ -1043,7 +1065,7 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
         showCursor: widget.showCursor,
         showSelectionHandles: _showSelectionHandles,
         controller: controller,
-        focusNode: focusNode,
+        focusNode: _focusNode,
         keyboardType: widget.keyboardType,
         textInputAction: widget.textInputAction,
         textCapitalization: widget.textCapitalization,
@@ -1084,15 +1106,15 @@ class _TextFieldState extends State<TextField> with AutomaticKeepAliveClientMixi
 
     if (widget.decoration != null) {
       child = AnimatedBuilder(
-        animation: Listenable.merge(<Listenable>[ focusNode, controller ]),
+        animation: Listenable.merge(<Listenable>[ _focusNode, controller ]),
         builder: (BuildContext context, Widget child) {
           return InputDecorator(
             decoration: _getEffectiveDecoration(),
             baseStyle: widget.style,
             textAlign: widget.textAlign,
             textAlignVertical: widget.textAlignVertical,
-            isHovering: _isHovering,
-            isFocused: focusNode.hasFocus,
+            isHovering: _states.contains(MaterialState.hovered),
+            isFocused: _focusNode.hasFocus,
             isEmpty: controller.value.text.isEmpty,
             expands: widget.expands,
             child: child,
