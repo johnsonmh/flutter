@@ -348,6 +348,30 @@ void main() {
     expect(scaledBox.size.height, 27.0);
   });
 
+  testWidgets('can switch between textHeightBehavior', (WidgetTester tester) async {
+    const String text = 'selectable text';
+    const TextHeightBehavior textHeightBehavior = TextHeightBehavior(
+      applyHeightToFirstAscent: false,
+      applyHeightToLastDescent: false,
+    );
+    await tester.pumpWidget(
+      boilerplate(
+        child: const SelectableText(text),
+      ),
+    );
+    expect(findRenderEditable(tester).textHeightBehavior, isNull);
+
+    await tester.pumpWidget(
+      boilerplate(
+        child: const SelectableText(
+          text,
+          textHeightBehavior: textHeightBehavior,
+        ),
+      ),
+    );
+    expect(findRenderEditable(tester).textHeightBehavior, textHeightBehavior);
+  });
+
   testWidgets('can switch between textWidthBasis', (WidgetTester tester) async {
     RenderBox findTextBox() => tester.renderObject(find.byType(SelectableText));
     const String text = 'I can face roll keyboardkeyboardaszzaaaaszzaaaaszzaaaaszzaaaa';
