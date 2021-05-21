@@ -20,15 +20,15 @@ import 'theme.dart';
 ///     selectedIndex: _currentPageIndex,
 ///     destinations: [
 ///       NavigationBarDestination(
-///         icon: Icons.explore,
+///         icon: Icon(Icons.explore),
 ///         label: 'Explore',
 ///       ),
 ///       NavigationBarDestination(
-///         icon: Icons.commute,
+///         icon: Icon(Icons.commute),
 ///         label: 'Commute',
 ///       ),
 ///       NavigationBarDestination(
-///         icon: Icons.bookmark,
+///         icon: Icon(Icons.bookmark),
 ///         unselectedIcon: Icons.bookmark_border,
 ///         label: 'Saved',
 ///       ),
@@ -188,17 +188,17 @@ class NavigationBarDestination extends StatelessWidget {
     required this.label,
   }) : super(key: key);
 
-  /// The [IconData] that displays when this [NavigationBarDestination] is
-  /// selected.
-  final IconData icon;
+  /// The [Widget] (usually an [Icon]) that displays when this
+  /// [NavigationBarDestination] is selected.
+  final Widget icon;
 
-  /// The [IconData] that displays when this [NavigationBarDestination] is
-  /// unselected.
+  /// The optional [Widget] (usually an [Icon]) that displays when this
+  /// [NavigationBarDestination] is unselected.
   ///
   /// If [unselectedIcon] is non-null, the destination will fade from
   /// [unselectedIcon] to [icon] when this destination goes from unselected to
   /// selected.
-  final IconData? unselectedIcon;
+  final Widget? unselectedIcon;
 
   /// The text label that appears below the icon of this
   /// [NavigationBarDestination].
@@ -214,15 +214,19 @@ class NavigationBarDestination extends StatelessWidget {
     return NavigationBarDestinationBuilder(
       label: label,
       buildIcon: (BuildContext context) {
-        final Widget selectedIconWidget = Icon(
-          icon,
-          size: 24,
-          color: colorScheme.onSurface,
+        final Widget selectedIconWidget = IconTheme.merge(
+          child: icon,
+          data: IconThemeData(
+            size: 24,
+            color: colorScheme.onSurface,
+          ),
         );
-        final Widget unselectedIconWidget = Icon(
-          unselectedIcon ?? icon,
-          size: 24,
-          color: colorScheme.onSurface,
+        final Widget unselectedIconWidget = IconTheme.merge(
+          child: unselectedIcon ?? icon,
+          data: IconThemeData(
+            size: 24,
+            color: colorScheme.onSurface,
+          ),
         );
 
         return Stack(
