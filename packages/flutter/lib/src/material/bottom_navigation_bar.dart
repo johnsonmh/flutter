@@ -14,7 +14,6 @@ import 'debug.dart';
 import 'ink_well.dart';
 import 'material.dart';
 import 'material_localizations.dart';
-import 'navigation_bar.dart';
 import 'theme.dart';
 import 'tooltip.dart';
 
@@ -1011,67 +1010,12 @@ class _BottomNavigationBarState extends State<BottomNavigationBar> with TickerPr
 
   @override
   Widget build(BuildContext context) {
-    final BottomNavigationBarThemeData bottomTheme = BottomNavigationBarTheme.of(context);
-
-
-    if (_effectiveType == BottomNavigationBarType.fixed) {
-      return NavigationBar(
-        animationDuration: kThemeAnimationDuration,
-        height: kBottomNavigationBarHeight,
-        elevation: widget.elevation ?? 8,
-        onTap: widget.onTap,
-        selectedIndex: widget.currentIndex,
-        backgroundColor: widget.backgroundColor
-            ?? bottomTheme.backgroundColor
-            ?? Theme.of(context).colorScheme.surface,
-        destinations: <Widget>[
-          for (BottomNavigationBarItem item in widget.items)
-            NavigationBarDestinationBuilder(
-              label: item.label!,
-              buildIcon: (BuildContext context) {
-                return item.icon;
-              },
-              buildLabel: (BuildContext context) {
-                final Animation<double> selectedAnimation =
-                    NavigationBarDestinationInfo.of(context).selectedAnimation;
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: AnimatedBuilder(
-                    animation: selectedAnimation,
-                    child: Text(item.label!),
-                    builder: (context, child) {
-                      return Transform(
-                        transform: Matrix4.diagonal3(
-                          Vector3.all(
-                            Tween<double>(
-                              begin: 14 / 16,
-                              end: 1.0,
-                            ).evaluate(selectedAnimation),
-                          ),
-                        ),
-                        alignment: Alignment.bottomCenter,
-                        child: child,
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-
-        ],
-      );
-    }
-
-
-
-
-
-
     assert(debugCheckHasDirectionality(context));
     assert(debugCheckHasMaterialLocalizations(context));
     assert(debugCheckHasMediaQuery(context));
     assert(Overlay.of(context, debugRequiredFor: widget) != null);
 
+    final BottomNavigationBarThemeData bottomTheme = BottomNavigationBarTheme.of(context);
     final double additionalBottomPadding = MediaQuery.of(context).padding.bottom;
     Color? backgroundColor;
     switch (_effectiveType) {
